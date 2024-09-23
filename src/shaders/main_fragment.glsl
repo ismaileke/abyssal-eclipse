@@ -2,7 +2,11 @@
 
 out vec4 Color;
 
+in vec2 textureCoordinate;
+
+uniform sampler2D custom_texture;
+
 void main()
 {
-    Color = vec4(0.4, 0.23, 0.7, 1.0);
+    Color = texture(custom_texture, textureCoordinate);
 }

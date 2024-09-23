@@ -128,6 +128,21 @@ impl Camera {
             let rot_x = self.sensitivity * mouse_y as f32/* * delta_time*/;
             let rot_y = self.sensitivity * mouse_x as f32/* * delta_time*/;
 
+
+            /*
+            glm::vec3 newOrientation = glm::rotate(orientation, glm::radians(-rotX), glm::normalize(glm::cross(orientation, camUp)));
+
+            if (abs(glm::angle(newOrientation, camUp) - glm::radians(90.0f)) <= glm::radians(85.0f))
+            {
+                orientation = newOrientation;
+            }
+
+            orientation = glm::rotate(orientation, glm::radians(-rotY), camUp);
+
+            */
+
+
+
             let new_orientation = rotate_vec3(&self.orientation, -rot_x.to_radians(), &normalize(&cross(&self.orientation, &self.camera_up)));
 
             if (angle(&new_orientation, &self.camera_up) - 90f32.to_radians()).abs() <= 85f32.to_radians() {
@@ -136,10 +151,12 @@ impl Camera {
 
             self.orientation = rotate_vec3(&self.orientation, -rot_y.to_radians(), &self.camera_up);
 
+
             win_sdl.sdl.mouse().warp_mouse_in_window(&win_sdl.window, center_x, center_y);
         } else {
             win_sdl.sdl.mouse().show_cursor(true);
             self.first_click = true;
         }
+
     }
 }

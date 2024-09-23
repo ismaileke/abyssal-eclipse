@@ -73,6 +73,11 @@ impl Program {
         unsafe { gl::UniformMatrix4fv(*location, 1, gl::FALSE, mat4.as_ptr()); } // burda problem olabilir
     }
 
+    pub fn set_texture(&mut self, name: &str, level: GLint) {
+        let location = self.uniform_list.get(name).expect(format!("Uniform List, Getting location error: {}.", name).as_str());
+        unsafe { gl::Uniform1i(*location, level);}
+    }
+
     pub fn id(&self) -> GLuint {
         self.id
     }
@@ -233,7 +238,7 @@ impl Drop for IBO {
 }
 
 
-
+///////////////////////////////////////////////////////////// YOU CAN EDIT?
 pub struct VAO {
     pub id: GLuint
 }
@@ -254,7 +259,9 @@ impl VAO {
     fn setup(&self) {
         unsafe {
             gl::EnableVertexAttribArray(0);
-            gl::VertexAttribPointer(0, 3, gl::FLOAT, gl::FALSE, (3 * size_of::<f32>()) as GLint, null());
+            gl::VertexAttribPointer(0, 3, gl::FLOAT, gl::FALSE, (5 * size_of::<f32>()) as GLint, null());
+            gl::EnableVertexAttribArray(1);
+            gl::VertexAttribPointer(1, 2, gl::FLOAT, gl::FALSE, (5 * size_of::<f32>()) as GLint, (3 * size_of::<f32>()) as *const std::os::raw::c_void);
         }
     }
 
