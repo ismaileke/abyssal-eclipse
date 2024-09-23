@@ -19,7 +19,7 @@ impl WinSDL {
         gl_attr.set_context_profile(GLProfile::Core);
         gl_attr.set_context_version(3, 3);
 
-        let window = video_subsystem.window("Abyssal Eclipse", width, height).opengl().build().unwrap();
+        let window = video_subsystem.window("Abyssal Eclipse", width, height).resizable().opengl().build().unwrap();
 
         let gl_context = window.gl_create_context().unwrap();
         let gl = gl::load_with(|s| {

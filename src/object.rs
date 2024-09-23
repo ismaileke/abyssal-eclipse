@@ -1,10 +1,13 @@
 use gl::types::{GLchar, GLenum, GLint, GLsizeiptr, GLuint};
+use nalgebra_glm::{Mat3, Mat4, Vec3, Vec4};
+use std::collections::HashMap;
 use std::ffi::{CStr, CString};
 use std::fs::read_to_string;
 use std::ptr::{null, null_mut};
 
 pub struct Program {
-    id: GLuint
+    id: GLuint,
+    uniform_list: HashMap<&'static str, GLint>
 }
 
 impl Program {
@@ -31,11 +34,47 @@ impl Program {
             return Err(error.to_string_lossy().into_owned());
         }
 
-        Ok(Program{ id })
+        Ok(Program{ id, uniform_list: HashMap::new() })
     }
 
     pub fn use_program(&self) {
         unsafe { gl::UseProgram(self.id); }
+    }
+
+    pub fn add_uniform(&mut self, name: &'static str) {
+        let cname: CString = CString::new(name).expect("CString::new error in Uniform.");
+        let location: GLint = unsafe { gl::GetUniformLocation(self.id, cname.as_ptr()) };
+
+        if location == -1 {
+            eprintln!("Couldn't get uniform location for {}", name);
+            return;
+        }
+
+        self.uniform_list.insert(name, location);
+    }
+
+    pub fn set_vec3(&mut self, name: &str, vec3: &Vec3) {
+        let location = self.uniform_list.get(name).expect(format!("Uniform List, Getting location error: {}.", name).as_str());
+        unsafe { gl::Uniform3f(*location, vec3[0], vec3[1], vec3[2]); }
+    }
+
+    pub fn set_vec4(&mut self, name: &str, vec4: &Vec4) {
+        let location = self.uniform_list.get(name).expect(format!("Uniform List, Getting location error: {}.", name).as_str());
+        unsafe { gl::Uniform4f(*location, vec4[0], vec4[1], vec4[2], vec4[3]); }
+    }
+
+    pub fn set_mat3(&mut self, name: &str, mat3: &Mat3) {
+        let location = self.uniform_list.get(name).expect(format!("Uniform List, Getting location error: {}.", name).as_str());
+        unsafe { gl::UniformMatrix3fv(*location, 1, gl::FALSE, mat3.as_ptr()); }
+    }
+
+    pub fn set_mat4(&mut self, name: &str, mat4: &Mat4) {
+        let location = self.uniform_list.get(name).expect(format!("Uniform List, Getting location error: {}.", name).as_str());
+        unsafe { gl::UniformMatrix4fv(*location, 1, gl::FALSE, mat4.as_ptr()); } // burda problem olabilir
+    }
+
+    pub fn id(&self) -> GLuint {
+        self.id
     }
 }
 
@@ -47,7 +86,7 @@ impl Drop for Program {
 
 
 pub struct Shader {
-    id: GLuint
+    id: GLuint,
 }
 
 impl Shader {
@@ -215,7 +254,7 @@ impl VAO {
     fn setup(&self) {
         unsafe {
             gl::EnableVertexAttribArray(0);
-            gl::VertexAttribPointer(0, 2, gl::FLOAT, gl::FALSE, (2 * size_of::<f32>()) as GLint, null());
+            gl::VertexAttribPointer(0, 3, gl::FLOAT, gl::FALSE, (3 * size_of::<f32>()) as GLint, null());
         }
     }
 
