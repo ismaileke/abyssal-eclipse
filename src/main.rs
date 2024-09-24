@@ -74,7 +74,7 @@ fn main() {
 
 
 
-    let mut camera = Camera::new(vec3(0.0, 0.0, 2.0), 4.0, 50.0);
+    let mut camera = Camera::new(vec3(0.0, 0.0, 2.0), 4.0, 1.0);
     camera.set_projection(120.0, 0.1, 100.0);
 
     let mut transform = Transform::new();

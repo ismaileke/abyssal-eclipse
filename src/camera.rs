@@ -126,8 +126,11 @@ impl Camera {
             let mouse_x = mouse.x();
             let mouse_y = mouse.y();
 
-            let rot_x = self.sensitivity * mouse_y as f32/* * delta_time*/;
-            let rot_y = self.sensitivity * mouse_x as f32/* * delta_time*/;
+            let rot_x = self.sensitivity * (mouse_y as f32)/* * delta_time*/;
+            let rot_y = self.sensitivity * (mouse_x as f32)/* * delta_time*/;
+
+            /*let rot_x = self.sensitivity * ((mouse_y - (HEIGHT as i32 / 2)) as f32) / (HEIGHT as f32);
+            let rot_y = self.sensitivity * ((mouse_x - (WIDTH as i32 / 2)) as f32) / (WIDTH as f32);*/
 
             let new_orientation = rotate_vec3(&self.orientation, -rot_x.to_radians(), &normalize(&cross(&self.orientation, &self.camera_up)));
 
