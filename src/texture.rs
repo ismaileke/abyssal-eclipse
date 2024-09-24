@@ -54,6 +54,10 @@ impl Texture {
         }
     }
 
+    pub fn deactivate_texture(&self) {
+        unsafe { gl::BindTexture(gl::TEXTURE_2D, 0); }
+    }
+
     pub fn delete_texture(&self, texture_id: GLuint) {
         unsafe {
             gl::DeleteTextures(1, texture_id as *const GLuint);

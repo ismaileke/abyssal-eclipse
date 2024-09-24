@@ -1,11 +1,15 @@
 use crate::camera::Camera;
 use crate::object::{create_program, IBO, VAO, VBO};
-use crate::win_sdl::WinSDL;
-use gl::types::{GLint, GLsizei};
-use nalgebra_glm::*;
-use sdl2::event::{Event, WindowEvent};
 use crate::texture::Texture;
 use crate::transform::Transform;
+use crate::win_sdl::WinSDL;
+use gl::types::{GLchar, GLenum, GLint, GLsizei, GLuint};
+use nalgebra_glm::*;
+use sdl2::event::{Event, WindowEvent};
+use std::ffi::CStr;
+use std::os::raw::c_void;
+use std::ptr::null;
+use crate::shape_data::ShapeData;
 //use std::env;
 
 mod win_sdl;
@@ -13,6 +17,7 @@ mod object;
 mod camera;
 mod transform;
 mod texture;
+mod shape_data;
 
 const WIDTH: u32 = 1800;
 const HEIGHT: u32 = 900;
@@ -24,45 +29,22 @@ fn main() {
 
 
     let mut texture = Texture::new();
-
-    let brick_texture_id = texture.load_texture("./src/textures/brick.jpg");
+    let bricks = texture.load_texture("./src/textures/brick.jpg");
 
 
 
     //--------------------------------------------------------------------------------
-    let length = 1.0;
-    let vertices: Vec<f32> = vec![
-        -length, -length, -length, 1.0, 0.0,  // 0
-        length, -length, -length, 1.0, 0.0,   // 1
-        length, -length, length, 1.0, 0.0,    // 2
-        -length, -length, length, 1.0, 0.0,   // 3
-        -length, length, -length, 1.0, 0.0,   // 4
-        length, length, -length, 1.0, 0.0,    // 5
-        length, length, length, 1.0, 0.0,     // 6
-        -length, length, length, 1.0, 0.0,    // 7
-
-    ];
-
-    let indices: Vec<u32> = vec![
-        4, 0, 3, 3, 7, 4,   // left
-        7, 3, 2, 2, 6, 7,   // front
-        6, 2, 1, 1, 5, 6,   // right
-        5, 1, 0, 0, 4, 5,   // back
-        4, 7, 6, 6, 5, 4,   // top
-        3, 0, 1, 1, 2, 3,   // bottom
-    ];
-
     let mut program = create_program("./src/shaders/main_vertex.glsl", "./src/shaders/main_fragment.glsl").unwrap();
     program.use_program();
 
     let vbo = VBO::generate();
-    vbo.set(&vertices);
+    vbo.set(&ShapeData::get_cube_vertices());
 
     let vao = VAO::generate();
     vao.set();
 
     let ibo = IBO::generate();
-    ibo.set(&indices);
+    ibo.set(&ShapeData::get_cube_indices());
 
     program.add_uniform("u_matrix_projection");
     program.add_uniform("u_matrix_camera");
@@ -73,11 +55,7 @@ fn main() {
 
 
 
-
-
-
-
-    let mut camera = Camera::new(vec3(0.0, 0.0, 2.0), 4.0, 1.0);
+    let mut camera = Camera::new(vec3(0.0, 0.0, 2.0), 4.0, 50.0);
     camera.set_projection(120.0, 0.1, 100.0);
 
     let mut transform = Transform::new();
@@ -89,8 +67,12 @@ fn main() {
     let mut last_frame_time= win_sdl.sdl.timer().unwrap().ticks();
 
     unsafe {
-        gl::Enable(gl::DEPTH);
+        gl::Enable(gl::DEPTH_TEST);
         gl::Enable(gl::CULL_FACE);
+        //gl::CullFace(gl::FRONT_FACE);
+        gl::Enable(gl::DEBUG_OUTPUT);
+        gl::Enable(gl::DEBUG_OUTPUT_SYNCHRONOUS);
+        gl::DebugMessageCallback(Some(gl_debug_callback), null());
     }
 
     'running: loop {
@@ -112,8 +94,6 @@ fn main() {
             }
         }
 
-
-
         unsafe {
             gl::ClearColor(0.0, 0.0, 0.0, 1.0);
             gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
@@ -131,18 +111,19 @@ fn main() {
 
 
             for x in 0..16 {
-                for z in 0..2 {
+                for z in 0..16 {
                     for y in 0..2 {
                         transform.set_position(vec3(x as f32, y as f32, z as f32));
-                        transform.set_scale(vec3(1.0, 1.0, 1.0));
+                        transform.set_scale(vec3(0.5, 0.5, 0.5));
                         transform.set_euler_angles(vec3(0.0, 0.0, 0.0));
                         transform.update();
                         matrix_transform = transform.get_matrix();
 
                         program.set_mat4("u_matrix_transform", &matrix_transform);
 
-                        gl::DrawElements(gl::TRIANGLES, indices.len() as GLint, gl::UNSIGNED_INT, 0 as *const _);
-                        texture.activate_texture(gl::TEXTURE0, brick_texture_id);
+                        texture.activate_texture(gl::TEXTURE0, bricks);
+                        gl::DrawElements(gl::TRIANGLES, ShapeData::get_cube_indices().len() as GLint, gl::UNSIGNED_INT, 0 as *const gl::types::GLvoid);
+
                     }
                 }
             }
@@ -152,4 +133,17 @@ fn main() {
 
         win_sdl.window.gl_swap_window();
     }
+}
+
+extern "system" fn gl_debug_callback(
+    source: GLenum,
+    type_: GLenum,
+    id: GLuint,
+    severity: GLenum,
+    _length: GLsizei,
+    message: *const GLchar,
+    _user_param: *mut c_void,
+) {
+    let message = unsafe { CStr::from_ptr(message).to_string_lossy().into_owned() };
+    println!("GL CALLBACK: source = {}, type = {}, id = {}, severity = {}, message = {}", source, type_, id, severity, message);
 }

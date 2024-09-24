@@ -1,6 +1,6 @@
-use std::os::raw::c_void;
+use sdl2::video::{GLContext, GLProfile, Window};
 use sdl2::{EventPump, Sdl};
-use sdl2::video::{GLContext, GLProfile, SwapInterval, Window};
+use std::os::raw::c_void;
 
 pub struct WinSDL {
     pub sdl: Sdl,
@@ -17,7 +17,7 @@ impl WinSDL {
 
         let gl_attr = video_subsystem.gl_attr();
         gl_attr.set_context_profile(GLProfile::Core);
-        gl_attr.set_context_version(3, 3);
+        gl_attr.set_context_version(4, 3);
 
         let window = video_subsystem.window("Abyssal Eclipse", width, height).resizable().opengl().build().unwrap();
 
@@ -26,7 +26,7 @@ impl WinSDL {
             video_subsystem.gl_get_proc_address(s) as *const c_void
         });
 
-        window.subsystem().gl_set_swap_interval(SwapInterval::VSync).unwrap();
+        //window.subsystem().gl_set_swap_interval(SwapInterval::VSync).unwrap();
 
         let event_pump = sdl.event_pump().unwrap();
         Ok(WinSDL{

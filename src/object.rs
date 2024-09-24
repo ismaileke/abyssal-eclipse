@@ -169,7 +169,7 @@ impl VBO {
 
     fn data(&self, vertices: &Vec<f32>) {
         unsafe {
-            gl::BufferData(gl::ARRAY_BUFFER, (vertices.len() * size_of::<f32>()) as GLsizeiptr, vertices.as_ptr() as *const gl::types::GLvoid, gl::STATIC_DRAW);
+            gl::BufferData(gl::ARRAY_BUFFER, (vertices.len() * size_of::<f32>()) as GLsizeiptr, vertices.as_ptr() as *const gl::types::GLvoid, gl::DYNAMIC_DRAW);
         }
     }
 
@@ -213,7 +213,7 @@ impl IBO {
 
     fn data(&self, indices: &Vec<u32>) {
         unsafe {
-            gl::BufferData(gl::ELEMENT_ARRAY_BUFFER, (indices.len() * size_of::<u32>()) as GLsizeiptr, indices.as_ptr() as *const gl::types::GLvoid, gl::STATIC_DRAW);
+            gl::BufferData(gl::ELEMENT_ARRAY_BUFFER, (indices.len() * size_of::<u32>()) as GLsizeiptr, indices.as_ptr() as *const gl::types::GLvoid, gl::DYNAMIC_DRAW);
         }
     }
 
