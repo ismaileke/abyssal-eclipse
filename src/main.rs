@@ -3,7 +3,7 @@ use crate::object::{create_program, IBO, VAO, VBO};
 use crate::texture::Texture;
 use crate::transform::Transform;
 use crate::win_sdl::WinSDL;
-use gl::types::{GLchar, GLenum, GLint, GLsizei, GLuint};
+use gl::types::{GLboolean, GLchar, GLenum, GLint, GLsizei, GLuint};
 use nalgebra_glm::*;
 use sdl2::event::{Event, WindowEvent};
 use std::ffi::CStr;
@@ -30,8 +30,27 @@ fn main() {
 
     let mut texture = Texture::new();
     let bricks = texture.load_texture("./src/textures/brick.jpg");
+    let skybox_texture = texture.load_cube_map_texture(vec!["./src/textures/right.jpg".to_string(), "./src/textures/left.jpg".to_string(), "./src/textures/top.jpg".to_string(), "./src/textures/bottom.jpg".to_string(), "./src/textures/front.jpg".to_string(), "./src/textures/back.jpg".to_string()]);
 
 
+
+    //--------------------------------------------------------------------------------              Skybox
+    let mut skybox_program = create_program("./src/shaders/skybox_vertex.glsl", "./src/shaders/skybox_fragment.glsl").unwrap();
+    skybox_program.use_program();
+
+    let vbo = VBO::generate();
+    vbo.set(&ShapeData::get_cube_vertices());
+
+    let vao = VAO::generate();
+    vao.set();
+
+    let ibo = IBO::generate();
+    ibo.set(&ShapeData::get_cube_indices());
+
+    skybox_program.add_uniform("u_matrix_projection");
+    skybox_program.add_uniform("u_matrix_camera");
+    skybox_program.add_uniform("u_matrix_transform");
+    //--------------------------------------------------------------------------------
 
     //--------------------------------------------------------------------------------
     let mut program = create_program("./src/shaders/main_vertex.glsl", "./src/shaders/main_fragment.glsl").unwrap();
@@ -68,7 +87,7 @@ fn main() {
 
     unsafe {
         gl::Enable(gl::DEPTH_TEST);
-        gl::Enable(gl::CULL_FACE);
+        //gl::Enable(gl::CULL_FACE);
         //gl::CullFace(gl::FRONT_FACE);
         gl::Enable(gl::DEBUG_OUTPUT);
         gl::Enable(gl::DEBUG_OUTPUT_SYNCHRONOUS);
@@ -100,6 +119,24 @@ fn main() {
 
             camera.inputs(&win_sdl, delta_time);
             camera.update_camera_look_at();
+
+
+            skybox_program.use_program();
+            skybox_program.set_mat4("u_matrix_projection", &camera.get_projection());
+            skybox_program.set_mat4("u_matrix_camera", &camera.get_camera_look_at());
+            skybox_program.set_mat4("u_matrix_transform", &matrix_transform);
+
+            transform.set_position(camera.get_camera_position());
+            transform.set_scale(vec3(2.0, 2.0, 2.0));
+            transform.set_euler_angles(vec3(0.0, 0.0, 0.0));
+            transform.update();
+            matrix_transform = transform.get_matrix();
+            skybox_program.set_mat4("u_matrix_transform", &matrix_transform);
+
+            gl::DepthMask(GLboolean::from(false));
+            texture.activate_cube_map_texture(skybox_texture);
+            gl::DrawElements(gl::TRIANGLES, ShapeData::get_cube_indices().len() as GLint, gl::UNSIGNED_INT, 0 as *const gl::types::GLvoid);
+            gl::DepthMask(GLboolean::from(true));
 
 
 

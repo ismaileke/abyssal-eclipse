@@ -47,10 +47,50 @@ impl Texture {
         texture_id
     }
 
+    pub fn load_cube_map_texture(&mut self, faces: Vec<String>) -> GLuint {
+        let mut texture_id = 0;
+        unsafe {
+            gl::GenTextures(1, &mut texture_id);
+            gl::BindTexture(gl::TEXTURE_CUBE_MAP, texture_id);
+        }
+        for index in 0..faces.len() {
+            let img = image::open(&Path::new(&faces[index])).expect(format!("Failed to load texture: {}", faces[index]).as_str());
+            let data = img.to_rgba8();
+            let (width, height) = img.dimensions();
+            let byte_array = data.into_raw();
+            unsafe {
+                gl::TexImage2D(
+                    gl::TEXTURE_CUBE_MAP_POSITIVE_X + index as GLenum,
+                    0,
+                    gl::RGBA as i32,
+                    width as i32,
+                    height as i32,
+                    0,
+                    gl::RGBA,
+                    gl::UNSIGNED_BYTE,
+                    byte_array.as_ptr() as *const _,
+                );
+                gl::TexParameteri(gl::TEXTURE_CUBE_MAP, gl::TEXTURE_WRAP_S, gl::REPEAT as i32);
+                gl::TexParameteri(gl::TEXTURE_CUBE_MAP, gl::TEXTURE_WRAP_T, gl::REPEAT as i32);
+                gl::TexParameteri(gl::TEXTURE_CUBE_MAP, gl::TEXTURE_WRAP_R, gl::REPEAT as i32);
+                gl::TexParameteri(gl::TEXTURE_CUBE_MAP, gl::TEXTURE_MIN_FILTER, gl::LINEAR as i32);
+                gl::TexParameteri(gl::TEXTURE_CUBE_MAP, gl::TEXTURE_MAG_FILTER, gl::LINEAR as i32);
+            }
+        }
+        texture_id
+    }
+
     pub fn activate_texture(&self, texture_level: GLenum, texture_id: GLuint) { // TEXTURE0,1,2..15, GLuint
         unsafe {
             gl::ActiveTexture(texture_level);
             gl::BindTexture(gl::TEXTURE_2D, texture_id);
+        }
+    }
+
+    pub fn activate_cube_map_texture(&self, texture_id: GLuint) {
+        unsafe {
+            gl::ActiveTexture(gl::TEXTURE_CUBE_MAP);
+            gl::BindTexture(gl::TEXTURE_CUBE_MAP, texture_id);
         }
     }
 
