@@ -1,3 +1,4 @@
+use std::any::Any;
 use gl::types::{GLchar, GLenum, GLint, GLsizeiptr, GLuint};
 use nalgebra_glm::{Mat3, Mat4, Vec3, Vec4};
 use std::collections::HashMap;
@@ -251,12 +252,26 @@ impl VAO {
         VAO { id }
     }
 
-    pub fn set(&self) {
+    pub fn set(&self/*, attrib_data: Vec<Box<dyn Any>>*/) {
         self.bind();
-        self.setup();
+        self.setup(/*attrib_data*/);
     }
 
-    fn setup(&self) {
+    fn setup(&self/*, attrib_data: Vec<Box<dyn Any>>*/) {
+        /*for attrib_datum in 0..attrib_data.len() {
+            let data = &attrib_data[attrib_datum];
+            if let Some(data) = data.downcast_ref::<i32>() {
+                println!("It's an integer: {}", data);
+            } else if let Some(data) = data.downcast_ref::<f32>() {
+                println!("It's an float: {}", data);
+            } else if let Some(data) = data.downcast_ref::<Vec<>>() {
+                println!("It's an float: {}", data);
+            }
+            unsafe {
+                gl::EnableVertexAttribArray(attrib_datum);
+                gl::VertexAttribPointer(attrib_datum, 2, gl::FLOAT, gl::FALSE, (5 * size_of::<f32>()) as GLint, (3 * size_of::<f32>()) as *const std::os::raw::c_void);
+            }
+        }*/
         unsafe {
             gl::EnableVertexAttribArray(0);
             gl::VertexAttribPointer(0, 3, gl::FLOAT, gl::FALSE, (5 * size_of::<f32>()) as GLint, null());

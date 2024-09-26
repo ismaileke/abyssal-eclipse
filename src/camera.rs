@@ -94,9 +94,9 @@ impl Camera {
         }
         // LEFT SHIFT key (Boost speed)
         if keyboard_state.is_scancode_pressed(Scancode::LShift) {
-            self.speed = 8.0;
+            self.speed = 20.0;
         } else {
-            self.speed = 5.0;
+            self.speed = 10.0;
         }
 
         // M key (Wireframe mode toggle)
@@ -111,11 +111,10 @@ impl Camera {
         }
 
         // Mouse input for orientation
+        let center_x = (WIDTH / 2) as i32;
+        let center_y = (HEIGHT / 2) as i32;
         if mouse_state.left() {
             win_sdl.sdl.mouse().show_cursor(false);
-
-            let center_x = (WIDTH / 2) as i32;
-            let center_y = (HEIGHT / 2) as i32;
 
             if self.first_click {
                 win_sdl.sdl.mouse().warp_mouse_in_window(&win_sdl.window, center_x, center_y);
@@ -126,11 +125,8 @@ impl Camera {
             let mouse_x = mouse.x();
             let mouse_y = mouse.y();
 
-            let rot_x = self.sensitivity * (mouse_y as f32)/* * delta_time*/;
-            let rot_y = self.sensitivity * (mouse_x as f32)/* * delta_time*/;
-
-            /*let rot_x = self.sensitivity * ((mouse_y - (HEIGHT as i32 / 2)) as f32) / (HEIGHT as f32);
-            let rot_y = self.sensitivity * ((mouse_x - (WIDTH as i32 / 2)) as f32) / (WIDTH as f32);*/
+            let rot_x = self.sensitivity * (mouse_y as f32);
+            let rot_y = self.sensitivity * (mouse_x as f32);
 
             let new_orientation = rotate_vec3(&self.orientation, -rot_x.to_radians(), &normalize(&cross(&self.orientation, &self.camera_up)));
 
@@ -140,8 +136,9 @@ impl Camera {
 
             self.orientation = rotate_vec3(&self.orientation, -rot_y.to_radians(), &self.camera_up);
 
-            win_sdl.sdl.mouse().warp_mouse_in_window(&win_sdl.window, center_x, center_y);
+
         } else {
+            //win_sdl.sdl.mouse().warp_mouse_in_window(&win_sdl.window, center_x, center_y);
             win_sdl.sdl.mouse().show_cursor(true);
             self.first_click = true;
         }

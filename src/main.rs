@@ -1,5 +1,6 @@
 use crate::camera::Camera;
 use crate::object::{create_program, IBO, VAO, VBO};
+use crate::shape_data::ShapeData;
 use crate::texture::Texture;
 use crate::transform::Transform;
 use crate::win_sdl::WinSDL;
@@ -9,7 +10,6 @@ use sdl2::event::{Event, WindowEvent};
 use std::ffi::CStr;
 use std::os::raw::c_void;
 use std::ptr::null;
-use crate::shape_data::ShapeData;
 //use std::env;
 
 mod win_sdl;
@@ -29,7 +29,27 @@ fn main() {
 
 
     let mut texture = Texture::new();
-    let bricks = texture.load_texture("./src/textures/brick.jpg");
+
+    let image_array = vec![
+        texture.load_texture("./src/textures/gold_ore.png"),
+        texture.load_texture("./src/textures/gold_block.png"),
+        texture.load_texture("./src/textures/dirt.png"),
+        texture.load_texture("./src/textures/glass.png"),
+        texture.load_texture("./src/textures/netherrack.png"),
+        texture.load_texture("./src/textures/yellow_wool.png"),
+        texture.load_texture("./src/textures/granite.png"),
+        texture.load_texture("./src/textures/brown_wool.png"),
+        texture.load_texture("./src/textures/blue_terracotta.png"),
+        texture.load_texture("./src/textures/blue_wool.png"),
+        texture.load_texture("./src/textures/jungle_planks.png"),
+        texture.load_texture("./src/textures/iron_ore.png"),
+        texture.load_texture("./src/textures/red_sand.png"),
+        texture.load_texture("./src/textures/red_nether_bricks.png"),
+        texture.load_texture("./src/textures/redstone_block.png"),
+        texture.load_texture("./src/textures/warped_wart_block.png")
+
+    ];
+
     let skybox_texture = texture.load_cube_map_texture(vec!["./src/textures/right.jpg".to_string(), "./src/textures/left.jpg".to_string(), "./src/textures/top.jpg".to_string(), "./src/textures/bottom.jpg".to_string(), "./src/textures/front.jpg".to_string(), "./src/textures/back.jpg".to_string()]);
 
 
@@ -56,14 +76,18 @@ fn main() {
     let mut program = create_program("./src/shaders/main_vertex.glsl", "./src/shaders/main_fragment.glsl").unwrap();
     program.use_program();
 
-    let vbo = VBO::generate();
-    vbo.set(&ShapeData::get_cube_vertices());
+    //let (rand_vertices, rand_indices) = create_perlin_noise_grid_with_tex_coords(GRID_SIZE);
 
-    let vao = VAO::generate();
-    vao.set();
+    let normal_vbo = VBO::generate();
+    normal_vbo.set(&ShapeData::get_cube_vertices());
+    //normal_vbo.set(&rand_vertices);
 
-    let ibo = IBO::generate();
-    ibo.set(&ShapeData::get_cube_indices());
+    let normal_vao = VAO::generate();
+    normal_vao.set();
+
+    let normal_ibo = IBO::generate();
+    normal_ibo.set(&ShapeData::get_cube_indices());
+    //normal_ibo.set(&rand_indices);
 
     program.add_uniform("u_matrix_projection");
     program.add_uniform("u_matrix_camera");
@@ -74,7 +98,7 @@ fn main() {
 
 
 
-    let mut camera = Camera::new(vec3(0.0, 0.0, 2.0), 4.0, 1.0);
+    let mut camera = Camera::new(vec3(0.0, 5.0, 2.0), 4.0, 1.0);
     camera.set_projection(120.0, 0.1, 100.0);
 
     let mut transform = Transform::new();
@@ -88,7 +112,7 @@ fn main() {
     unsafe {
         gl::Enable(gl::DEPTH_TEST);
         //gl::Enable(gl::CULL_FACE);
-        //gl::CullFace(gl::FRONT_FACE);
+        gl::Enable(gl::MULTISAMPLE);
         gl::Enable(gl::DEBUG_OUTPUT);
         gl::Enable(gl::DEBUG_OUTPUT_SYNCHRONOUS);
         gl::DebugMessageCallback(Some(gl_debug_callback), null());
@@ -121,6 +145,9 @@ fn main() {
             camera.update_camera_look_at();
 
 
+
+            //gl::Disable(gl::CULL_FACE);
+            vao.bind();
             skybox_program.use_program();
             skybox_program.set_mat4("u_matrix_projection", &camera.get_projection());
             skybox_program.set_mat4("u_matrix_camera", &camera.get_camera_look_at());
@@ -134,9 +161,11 @@ fn main() {
             skybox_program.set_mat4("u_matrix_transform", &matrix_transform);
 
             gl::DepthMask(GLboolean::from(false));
+
             texture.activate_cube_map_texture(skybox_texture);
             gl::DrawElements(gl::TRIANGLES, ShapeData::get_cube_indices().len() as GLint, gl::UNSIGNED_INT, 0 as *const gl::types::GLvoid);
             gl::DepthMask(GLboolean::from(true));
+            //gl::Enable(gl::CULL_FACE);
 
 
 
@@ -144,12 +173,23 @@ fn main() {
             program.set_mat4("u_matrix_projection", &camera.get_projection());
             program.set_mat4("u_matrix_camera", &camera.get_camera_look_at());
             program.set_mat4("u_matrix_transform", &matrix_transform);
+
+            transform.set_position(vec3(0.0, 0.0, 0.0));
+            transform.set_scale(vec3(1.0, 1.0, 1.0));
+            transform.set_euler_angles(vec3(0.0, 0.0, 0.0));
+            transform.update();
+            matrix_transform = transform.get_matrix();
+
+            program.set_mat4("u_matrix_transform", &matrix_transform);
             program.set_texture("custom_texture", 0);
+
+            normal_vao.bind();
+
 
 
             for x in 0..16 {
                 for z in 0..16 {
-                    for y in 0..2 {
+                    for y in 0..1 {
                         transform.set_position(vec3(x as f32, y as f32, z as f32));
                         transform.set_scale(vec3(0.5, 0.5, 0.5));
                         transform.set_euler_angles(vec3(0.0, 0.0, 0.0));
@@ -158,7 +198,7 @@ fn main() {
 
                         program.set_mat4("u_matrix_transform", &matrix_transform);
 
-                        texture.activate_texture(gl::TEXTURE0, bricks);
+                        texture.activate_texture(gl::TEXTURE0, image_array[z]);
                         gl::DrawElements(gl::TRIANGLES, ShapeData::get_cube_indices().len() as GLint, gl::UNSIGNED_INT, 0 as *const gl::types::GLvoid);
 
                     }
@@ -167,7 +207,6 @@ fn main() {
 
 
         }
-
         win_sdl.window.gl_swap_window();
     }
 }
