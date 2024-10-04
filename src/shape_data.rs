@@ -52,9 +52,22 @@ impl ShapeData {
         }
         indices
     }
+
+    pub fn get_crosshair_vertices() -> Vec<f32> {
+        let crosshair_vertices: Vec<f32> = vec![
+            // (Y axis)
+            0.0, -0.02,     // bottom vertex
+            0.0,  0.02,     // top vertex
+            // (X axis)
+            -0.015, 0.0,    // left vertex
+            0.015,  0.0,    // right vertex
+        ];
+        crosshair_vertices
+    }
 }
 
-/*let temp_vertices: Vec<f32> = vec![
+/*
+    let temp_vertices: Vec<f32> = vec![
         -length, -length, -length,  // 0
         length, -length, -length,   // 1
         length, -length, length,    // 2
@@ -72,4 +85,5 @@ impl ShapeData {
         5, 1, 0, 0, 4, 5,   // back
         4, 7, 6, 6, 5, 4,   // top
         3, 0, 1, 1, 2, 3,   // bottom
-    ];*/
+    ];
+*/

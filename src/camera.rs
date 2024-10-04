@@ -66,7 +66,6 @@ impl Camera {
 
     pub fn inputs(&mut self, win_sdl: &WinSDL, delta_time: f32) {
         let keyboard_state = win_sdl.event_pump.keyboard_state();
-        let mouse_state = win_sdl.event_pump.mouse_state();
 
         // W key (Forward)
         if keyboard_state.is_scancode_pressed(Scancode::W) {
@@ -110,38 +109,26 @@ impl Camera {
             }
         }
 
-        // Mouse input for orientation
-        let center_x = (WIDTH / 2) as i32;
-        let center_y = (HEIGHT / 2) as i32;
-        if mouse_state.left() {
-            win_sdl.sdl.mouse().show_cursor(false);
+        win_sdl.sdl.mouse().show_cursor(false);
 
-            if self.first_click {
-                win_sdl.sdl.mouse().warp_mouse_in_window(&win_sdl.window, center_x, center_y);
-                self.first_click = false;
-            }
-
-            let mouse = win_sdl.event_pump.relative_mouse_state();
-            let mouse_x = mouse.x();
-            let mouse_y = mouse.y();
-
-            let rot_x = self.sensitivity * (mouse_y as f32);
-            let rot_y = self.sensitivity * (mouse_x as f32);
-
-            let new_orientation = rotate_vec3(&self.orientation, -rot_x.to_radians(), &normalize(&cross(&self.orientation, &self.camera_up)));
-
-            if (angle(&new_orientation, &self.camera_up) - 90f32.to_radians()).abs() <= 85f32.to_radians() {
-                self.orientation = new_orientation;
-            }
-
-            self.orientation = rotate_vec3(&self.orientation, -rot_y.to_radians(), &self.camera_up);
-
-
-        } else {
-            //win_sdl.sdl.mouse().warp_mouse_in_window(&win_sdl.window, center_x, center_y);
-            win_sdl.sdl.mouse().show_cursor(true);
-            self.first_click = true;
+        if self.first_click {
+            win_sdl.sdl.mouse().warp_mouse_in_window(&win_sdl.window, (WIDTH / 2) as i32, (HEIGHT / 2) as i32);
+            self.first_click = false;
         }
 
+        let mouse = win_sdl.event_pump.relative_mouse_state();
+        let mouse_x = mouse.x();
+        let mouse_y = mouse.y();
+
+        let rot_x = self.sensitivity * (mouse_y as f32);
+        let rot_y = self.sensitivity * (mouse_x as f32);
+
+        let new_orientation = rotate_vec3(&self.orientation, -rot_x.to_radians(), &normalize(&cross(&self.orientation, &self.camera_up)));
+
+        if (angle(&new_orientation, &self.camera_up) - 90f32.to_radians()).abs() <= 85f32.to_radians() {
+            self.orientation = new_orientation;
+        }
+
+        self.orientation = rotate_vec3(&self.orientation, -rot_y.to_radians(), &self.camera_up);
     }
 }

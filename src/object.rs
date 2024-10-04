@@ -1,4 +1,3 @@
-use std::any::Any;
 use gl::types::{GLchar, GLenum, GLint, GLsizeiptr, GLuint};
 use nalgebra_glm::{Mat3, Mat4, Vec3, Vec4};
 use std::collections::HashMap;
@@ -239,7 +238,7 @@ impl Drop for IBO {
 }
 
 
-///////////////////////////////////////////////////////////// YOU CAN EDIT?
+///////////////////////////////////////////////////////////// EDIT LATER
 pub struct VAO {
     pub id: GLuint
 }
@@ -252,31 +251,24 @@ impl VAO {
         VAO { id }
     }
 
-    pub fn set(&self/*, attrib_data: Vec<Box<dyn Any>>*/) {
+    pub fn set(&self, two_dimension: bool) {
         self.bind();
-        self.setup(/*attrib_data*/);
+        self.setup(two_dimension);
     }
 
-    fn setup(&self/*, attrib_data: Vec<Box<dyn Any>>*/) {
-        /*for attrib_datum in 0..attrib_data.len() {
-            let data = &attrib_data[attrib_datum];
-            if let Some(data) = data.downcast_ref::<i32>() {
-                println!("It's an integer: {}", data);
-            } else if let Some(data) = data.downcast_ref::<f32>() {
-                println!("It's an float: {}", data);
-            } else if let Some(data) = data.downcast_ref::<Vec<>>() {
-                println!("It's an float: {}", data);
-            }
+    fn setup(&self, two_dimension: bool) {
+        if two_dimension {
             unsafe {
-                gl::EnableVertexAttribArray(attrib_datum);
-                gl::VertexAttribPointer(attrib_datum, 2, gl::FLOAT, gl::FALSE, (5 * size_of::<f32>()) as GLint, (3 * size_of::<f32>()) as *const std::os::raw::c_void);
+                gl::EnableVertexAttribArray(0);
+                gl::VertexAttribPointer(0, 2, gl::FLOAT, gl::FALSE, (2 * size_of::<f32>()) as GLint, null());
             }
-        }*/
-        unsafe {
-            gl::EnableVertexAttribArray(0);
-            gl::VertexAttribPointer(0, 3, gl::FLOAT, gl::FALSE, (5 * size_of::<f32>()) as GLint, null());
-            gl::EnableVertexAttribArray(1);
-            gl::VertexAttribPointer(1, 2, gl::FLOAT, gl::FALSE, (5 * size_of::<f32>()) as GLint, (3 * size_of::<f32>()) as *const std::os::raw::c_void);
+        } else {
+            unsafe {
+                gl::EnableVertexAttribArray(0);
+                gl::VertexAttribPointer(0, 3, gl::FLOAT, gl::FALSE, (5 * size_of::<f32>()) as GLint, null());
+                gl::EnableVertexAttribArray(1);
+                gl::VertexAttribPointer(1, 2, gl::FLOAT, gl::FALSE, (5 * size_of::<f32>()) as GLint, (3 * size_of::<f32>()) as *const std::os::raw::c_void);
+            }
         }
     }
 

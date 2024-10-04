@@ -21,7 +21,7 @@ impl WinSDL {
 
         gl_attr.set_multisample_samples(4); // 4x MSAA
 
-        let window = video_subsystem.window("Abyssal Eclipse", width, height).resizable().opengl().build().unwrap();
+        let window = video_subsystem.window("Abyssal Eclipse", width, height).opengl().fullscreen_desktop().borderless().build().unwrap();
 
         let gl_context = window.gl_create_context().unwrap();
         let gl = gl::load_with(|s| {
